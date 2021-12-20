@@ -1,0 +1,8 @@
+@misc{woodward2021physics,
+      title={Physics Informed Machine Learning of SPH: Machine Learning Lagrangian Turbulence}, 
+      author={Michael Woodward and Yifeng Tian and Criston Hyett and Chris Fryer and Daniel Livescu and Mikhail Stepanov and Michael Chertkov},
+      year={2021},
+      eprint={2110.13311},
+      archivePrefix={arXiv},
+      primaryClass={physics.flu-dyn}
+}
