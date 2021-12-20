@@ -1,47 +1,56 @@
-
-# coding: utf-8
-
-# # Talks markdown generator for academicpages
-# 
-# Takes a TSV of talks with metadata and converts them for use with [academicpages.github.io](academicpages.github.io). This is an interactive Jupyter notebook ([see more info here](http://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/what_is_jupyter.html)). The core python code is also in `talks.py`. Run either from the `markdown_generator` folder after replacing `talks.tsv` with one containing your data.
-# 
-# TODO: Make this work with BibTex and other databases, rather than Stuart's non-standard TSV format and citation style.
-
-# In[1]:
-
-import pandas as pd
 import os
 
+class Talk:
+    def __init__(self,
+                 title,
+                 talk_type,
+                 url_slug,
+                 venue,
+                 date,
+                 location,
+                 talk_url,
+                 description):
+        self.title = title;
+        self.talk_type = talk_type;
+        self.url_slug = url_slug;
+        self.venue = venue;
+        self.date = date;
+        self.location = location;
+        self.talk_url = talk_url;
+        self.description = description;
 
-# ## Data format
-# 
-# The TSV needs to have the following columns: title, type, url_slug, venue, date, location, talk_url, description, with a header at the top. Many of these fields can be blank, but the columns must be in the TSV.
-# 
-# - Fields that cannot be blank: `title`, `url_slug`, `date`. All else can be blank. `type` defaults to "Talk" 
-# - `date` must be formatted as YYYY-MM-DD.
-# - `url_slug` will be the descriptive part of the .md file and the permalink URL for the page about the paper. 
-#     - The .md file will be `YYYY-MM-DD-[url_slug].md` and the permalink will be `https://[yourdomain]/talks/YYYY-MM-DD-[url_slug]`
-#     - The combination of `url_slug` and `date` must be unique, as it will be the basis for your filenames
-# 
+aps2020 = Talk(title = "Machine Learning Statistical Lagrangian Geometry of Turbulence",
+               talk_type = "talk",
+               url_slug = "aps2020",
+               venue = "APS Division of Fluid Dynamics Meeting",
+               date = "2020-11-21",
+               location = "online",
+               talk_url = "none",
+               description = "Recently, there has been a lot of interest in applying machine learning techniques to capture Lagrangian dynamics of fluid particles in turbulent flows. We extend this work in search of Lagrangian dynamics of coarse-grained fluid volume/geometry and velocity gradient. Our work builds on the machine learning of Lagrangian dynamics, as well as the development of phenomenological reduced order models by approximating the closure of a physics-based model using neural networks to create a parameterized stochastic differential equation; coupling the evolution of the geometry to the evolution of the coarse-grained dynamical quantities; including deterministic and stochastic dynamics. Further, because the stochastic terms are themselves parameterized, we are able to target higher-order moments of dynamical quantities of interest. We train and evaluate the parameterized SDE against filtered Lagrangian DNS data to obtain a data-driven closure to the hypothesized model. We then evaluate the trained model to recover the learned insights to the phenomenological model.");
+
+brownBag2020 = Talk(title = "Machine Learning Stochastic Differential Equations: Applications in Reduced Order Models of Turbulence",
+               talk_type = "talk",
+               url_slug = "bbSpring2021",
+               venue = "University of Arizona, SIAM Student Brownbag Colloquium",
+               date = "2021-03-26",
+               location = "online",
+               talk_url = "none",
+               description = "The ubiquity of turbulence, as well as the importance and difficulty of its simulation are well-known. To combat the computational complexity, physically motivated phenomenological theories of reduced-order models have been hypothesized. While very interpretable, these theories struggle to match DNS results. We look to extend these phenomenological models, via neural networks. In this talk, I will focus mainly on our general training methodology to learn extensions to stochastic differential equations, and then touch on our applications to turbulence at the end.");
+
+aps2021 = Talk(title = "Machine Learning Statistical Evolution of the Coarse-Grained Velocity Gradient Tensor",
+               talk_type = "talk",
+               url_slug = "aps2021",
+               venue = "APS Division of Fluid Dynamics Meeting",
+               date = "2021-11-20",
+               location = "Phoenix, AZ",
+               talk_url = "none",
+               description = "We exploit recent advances in physics-informed machine learning and phenomenological theories of turbulence to develop parameterized stochastic differential equations (SDEs) coupling the Lagrangian evolution of a fluid volume to the coarse-grained velocity gradient tensor; resulting in a reduced order model for incompressible turbulence. Choosing minimal representations of fluid geometry and velocity gradient tensor, we search for local approximations to nonlinear (pressure and subgrid) terms. The goal is achieved by optimizing physics-informed neural networks - dependent on the coupled system of fluid geometry and velocity gradient tensor - over high fidelity Lagrangian direct numerical simulation data. We demonstrate the ability of the parameterized SDEs to reproduce the topological statistics of the coarse-grained velocity gradient tensor, as well as the shape distributions of the respective fluid elements.");
 
 
-# ## Import TSV
-# 
-# Pandas makes this easy with the read_csv function. We are using a TSV, so we specify the separator as a tab, or `\t`.
-# 
-# I found it important to put this data in a tab-separated values format, because there are a lot of commas in this kind of data and comma-separated values can get messed up. However, you can modify the import statement, as pandas also has read_excel(), read_json(), and others.
+talks = [aps2020, 
+         brownBag2020,
+         aps2021];
 
-# In[3]:
-
-talks = pd.read_csv("talks.tsv", sep="\t", header=0)
-talks
-
-
-# ## Escape special characters
-# 
-# YAML is very picky about how it takes a valid string, so we are replacing single and double quotes (and ampersands) with their HTML encoded equivilents. This makes them look not so readable in raw format, but they are parsed and rendered nicely.
-
-# In[4]:
 
 html_escape_table = {
     "&": "&amp;",
@@ -56,15 +65,7 @@ def html_escape(text):
         return "False"
 
 
-# ## Creating the markdown files
-# 
-# This is where the heavy lifting is done. This loops through all the rows in the TSV dataframe, then starts to concatentate a big string (```md```) that contains the markdown for each type. It does the YAML metadata first, then does the description for the individual page.
-
-# In[5]:
-
-loc_dict = {}
-
-for row, item in talks.iterrows():
+for item in talks:
     
     md_filename = str(item.date) + "-" + item.url_slug + ".md"
     html_filename = str(item.date) + "-" + item.url_slug 
@@ -73,8 +74,8 @@ for row, item in talks.iterrows():
     md = "---\ntitle: \""   + item.title + '"\n'
     md += "collection: talks" + "\n"
     
-    if len(str(item.type)) > 3:
-        md += 'type: "' + item.type + '"\n'
+    if len(str(item.talk_type)) > 3:
+        md += 'type: "' + item.talk_type + '"\n'
     else:
         md += 'type: "Talk"\n'
     
@@ -105,7 +106,4 @@ for row, item in talks.iterrows():
     
     with open("../_talks/" + md_filename, 'w') as f:
         f.write(md)
-
-
-# These files are in the talks directory, one directory below where we're working from.
 
