@@ -1,0 +1,3 @@
+[submodule "markdown_generator/CV/moderncv"]
+	path = markdown_generator/CV/moderncv
+	url = https://github.com/moderncv/moderncv.git
