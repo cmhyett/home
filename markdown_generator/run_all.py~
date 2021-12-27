@@ -1,0 +1,3 @@
+exec("talks.py");
+exec("teaching.py");
+exec("publications.py");
